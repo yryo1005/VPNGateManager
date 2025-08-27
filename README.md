@@ -2,7 +2,7 @@
 
 Python クラス VpngateManager を使って，VPN Gate の公開 VPN サーバーに接続・切断を簡単に行えます．
 
-概要
+## 概要
 - VpngateManager は VPN Gate の .ovpn プロファイルを自動で取得し，インスタンス化時にランダムで VPN を選択します．
 - 接続完了後は disconnect() まで同じ VPN に接続し続けます．
 - タイムアウト機能付きで，VPN 接続に失敗した場合は自動で切断します．
