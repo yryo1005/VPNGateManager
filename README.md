@@ -1,10 +1,12 @@
 # VpngateManager
 
-Python クラス VpngateManager を使って，VPN Gate の公開 VPN サーバーに接続・切断を簡単に行えます．
+Python クラス VpngateManager を使って，VPN Gate の公開 VPN サーバーに自動で接続・切断を簡単に行えます．
 
 ## 概要
 - VpngateManager は VPN Gate の .ovpn プロファイルを自動で取得し，インスタンス化時にランダムで VPN を選択します．
-- 接続完了後は disconnect() まで同じ VPN に接続し続けます．
+- インスタンス化した後は connect() で VPN に接続します．
+- 接続後は disconnect() することで VPN から切断します．
+- 切断後は元の IP アドレスに戻ります．
 - タイムアウト機能付きで，VPN 接続に失敗した場合は自動で切断します．
 - ログの表示は verbose=True でオンにできます．
 
@@ -57,4 +59,3 @@ VPN 切断完了
 ## 注意事項
 - 本スクリプトは Linux / WSL 環境での使用を想定しています．Windows では動作保証がありません．
 - 公開 VPN のため，接続先の安定性や速度は保証されません．
-- .ovpn ファイルはリポジトリに含めず，一時的に生成する仕様です．
