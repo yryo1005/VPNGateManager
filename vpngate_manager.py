@@ -57,6 +57,7 @@ class VpngateManager:
         for line in self.proc.stdout:
             if "Initialization Sequence Completed" in line:
                 if self.verbose: print(f"VPN 接続完了, 接続時間: {time.time() - start_time}")
+                time.sleep(0.5)
                 return True
             if time.time() - start_time > self.CONNECT_TIMEOUT:
                 if self.verbose: print("接続タイムアウト")
@@ -67,6 +68,7 @@ class VpngateManager:
         if self.proc:
             self.proc.terminate()
             subprocess.run(["sudo", "pkill", "-f", self.OVPN_TMP_FILE])
+            time.sleep(0.5)
             self.proc = None
         if os.path.exists(self.OVPN_TMP_FILE):
             os.remove(self.OVPN_TMP_FILE)
