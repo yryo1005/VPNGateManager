@@ -6,7 +6,7 @@ import time
 import random
 
 class VpngateManager:
-    def __init__(self, tmp_file="tmp.ovpn", connect_timeout=3, verbose=False, min_speed = 10048695, max_ping = 30, init_to_connect = True):
+    def __init__(self, tmp_file="tmp.ovpn", connect_timeout=5, verbose=False, min_speed = 10048695, max_ping = 30, init_to_connect = True):
         """
             tmp_file: VPNプロファイルの一時的な保存先
             connect_timeout: VPNに接続した際のタイムアウト時間
