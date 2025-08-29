@@ -32,16 +32,10 @@ pip install requests
 
 ## 使用例
 
+### 接続先のIPアドレスを確認
 ```python
 import requests
-from VPNGateManager.vpngate_manager import VpngateManager
-
-def get_my_ip():
-    try:
-        res = requests.get("https://api.ipify.org")
-        return res.text
-    except Exception as e:
-        return f"IP確認エラー: {e}"
+from VPNGateManager.vpngate_manager import VpngateManager, get_my_ip
 
 print("自分のIP:", get_my_ip())
 
@@ -51,15 +45,48 @@ print("自分のIP:", get_my_ip())
 vpn_manager.disconnect()
 print("自分のIP:", get_my_ip())
 """
-自分のIP: 114.*.*.20
+自分のIP: 114.150.235.20
 接続先: IP=219.100.37.92, Speed=408.01 Mbps, Ping=11.0 ms
 VPN 接続完了, 接続時間: 4.44 秒
 自分のIP: 219.100.37.238
 VPN 切断完了
-自分のIP: 114.*.*.20
+自分のIP: 114.150.235.20
 """
 ```
 
+### タイムアウト確認機能を用いてVPNを再接続
+```python
+import time
+import requests
+from VPNGateManager.vpngate_manager import VpngateManager, run_with_timeout
+
+verbose = True
+def reset_vpn(timeout=3, test_url = "https://www.shonan-it.ac.jp/"):
+    VpngateManager(verbose=verbose)
+
+    def block():
+        st = time.time()
+        requests.get(test_url, timeout=timeout)
+        if verbose: print("アクセス時間: ", time.time() - st)
+        return True
+
+    ok = run_with_timeout(block, timeout=timeout)
+    if not ok:
+        if verbose: print(f"{timeout}秒超過, 再接続します")
+        return reset_vpn()
+    return True
+
+reset_vpn()
+
+"""
+接続先: IP=118.156.21.114, Speed=812.27 Mbps, Ping=2.0 ms
+接続タイムアウト
+VPN 切断完了
+接続先: IP=180.146.97.71, Speed=78.81 Mbps, Ping=2.0 ms
+VPN 接続完了, 接続時間: 1.38 秒
+アクセス時間:  0.3715653419494629
+"""
+```
 ## 注意事項
 - 本スクリプトは Linux / WSL 環境での使用を想定しています．Windows では動作保証がありません．
 - 公開 VPN のため，接続先の安定性や速度は保証されません．
