@@ -108,12 +108,7 @@ class VpngateManager:
 
     def disconnect(self):
         if self.proc:
-            self.proc.terminate()
-            try:
-                self.proc.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                if self.verbose: print("VPNが終了しません, 強制終了")
-                subprocess.run(["sudo", "pkill", "-f", self.OVPN_TMP_FILE])
+            subprocess.run(["sudo", "pkill", "-f", self.OVPN_TMP_FILE])
             self.proc = None
         if os.path.exists(self.OVPN_TMP_FILE):
             os.remove(self.OVPN_TMP_FILE)
