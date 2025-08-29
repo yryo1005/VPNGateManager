@@ -28,6 +28,7 @@ class VpngateManager:
         # ランダムではなく速度順にソートされたリストの先頭を選ぶ
         self.selected_ovpn = self.select_vpn()
         self.proc = None
+        self.disconnect()
         if init_to_connect: self.connect()
 
     def fetch_ovpn_list(self):
