@@ -120,7 +120,13 @@ class VpngateManager:
         if self.verbose: print("VPN 切断完了")
         time.sleep(1)
 
-# タイムアウト付きブロック実行関数
+def get_my_ip():
+    try:
+        res = requests.get("https://api.ipify.org")
+        return res.text
+    except Exception as e:
+        return f"IP確認エラー: {e}"
+
 def run_with_timeout(func, timeout=3, *args, **kwargs):
     def wrapper(q, *args, **kwargs):
         try:
