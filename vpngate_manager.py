@@ -1,12 +1,13 @@
-import requests
-import base64
-import subprocess
 import os
 import time
 import random
+import select
+import base64
+import requests
+import subprocess
 
 class VpngateManager:
-    def __init__(self, tmp_file="tmp.ovpn", connect_timeout=5, verbose=False, min_speed = 10048695, max_ping = 30, init_to_connect = True):
+    def __init__(self, tmp_file="tmp.ovpn", connect_timeout=5, verbose=False, min_speed = 10048695, max_ping = 15, init_to_connect = True):
         """
             tmp_file: VPNプロファイルの一時的な保存先
             connect_timeout: VPNに接続した際のタイムアウト時間
@@ -77,7 +78,7 @@ class VpngateManager:
             print(f"接続先: IP={selected_vpn['ip']}, Speed={selected_vpn['speed']/1e6:.2f} Mbps, Ping={selected_vpn['ping']} ms")
         return selected_vpn["ovpn"]
 
-    def connect(self):
+    def connect_old(self):
         with open(self.OVPN_TMP_FILE, "w") as f:
             f.write(self.selected_ovpn)
 
@@ -105,6 +106,40 @@ class VpngateManager:
                 self.selected_ovpn = self.select_vpn()
                 self.proc = None
                 return self.connect()
+    
+    def connect(self):
+        with open(self.OVPN_TMP_FILE, "w") as f:
+            f.write(self.selected_ovpn)
+
+        self.proc = subprocess.Popen(
+            ["sudo", "openvpn", "--config", self.OVPN_TMP_FILE],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+
+        start_time = time.time()
+        while True:
+            # タイムアウト判定
+            if time.time() - start_time > self.CONNECT_TIMEOUT:
+                if self.verbose: print("接続タイムアウト")
+                self.disconnect()
+                self.ovpn_list = self.fetch_ovpn_list()
+                if not self.ovpn_list:
+                    raise RuntimeError("OVPNリストが取得できませんでした")
+                self.selected_ovpn = self.select_vpn()
+                self.proc = None
+                return self.connect()
+
+            # ノンブロッキングでstdoutチェック
+            rlist, _, _ = select.select([self.proc.stdout], [], [], 0.5)
+            if rlist:
+                line = self.proc.stdout.readline()
+                if "Initialization Sequence Completed" in line:
+                    if self.verbose: print(f"VPN 接続完了, 接続時間: {time.time() - start_time:.2f} 秒")
+                    time.sleep(0.5)
+                    return True
 
     def disconnect(self):
         if self.proc:
