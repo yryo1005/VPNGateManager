@@ -23,6 +23,8 @@ class VpngateManager:
                 text=True,
                 bufsize=1
             )
+            os.remove(self.OVPN_TMP_FILE)
+            time.sleep(1)
 
         if init_to_connect: self.connect()
 
