@@ -69,11 +69,10 @@ class VpngateManager:
         # 速度とPingが条件を満たしたVPNのみ抽出
         tmp_list = [L for L in self.ovpn_list if L["speed"] > self.MIN_SPEED and L["ping"] < self.MAX_PING]
         if not tmp_list:
-            # 速度降順, Ping昇順でソート
-            tmp_list = sorted(self.ovpn_list, key=lambda x: (-x["speed"], x["ping"]))
-            selected_vpn = tmp_list[0]
-        else:
-            selected_vpn = random.choice(tmp_list)
+            # 速度降順, Ping昇順でソート，上位20件のみ抽出
+            tmp_list = sorted(self.ovpn_list, key=lambda x: (-x["speed"], x["ping"]))[:20]
+
+        selected_vpn = random.choice(tmp_list)
         if self.verbose:
             print(f"接続先: IP={selected_vpn['ip']}, Speed={selected_vpn['speed']/1e6:.2f} Mbps, Ping={selected_vpn['ping']} ms")
         return selected_vpn["ovpn"]
@@ -98,7 +97,14 @@ class VpngateManager:
             if time.time() - start_time > self.CONNECT_TIMEOUT:
                 if self.verbose: print("接続タイムアウト")
                 self.disconnect()
-                return False
+
+                # 異なる接続先を選択する
+                self.ovpn_list = self.fetch_ovpn_list()
+                if not self.ovpn_list:
+                    raise RuntimeError("OVPNリストが取得できませんでした")
+                self.selected_ovpn = self.select_vpn()
+                self.proc = None
+                return self.connect()
 
     def disconnect(self):
         if self.proc:
@@ -109,5 +115,3 @@ class VpngateManager:
         if os.path.exists(self.OVPN_TMP_FILE):
             os.remove(self.OVPN_TMP_FILE)
         if self.verbose: print("VPN 切断完了")
-
-vpn_manager = VpngateManager(tmp_file="tmp.ovpn", connect_timeout=3, verbose=True)
